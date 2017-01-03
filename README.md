@@ -20,6 +20,21 @@ Executing `strings` on the resulting binary file: https://gist.github.com/lewurm
 $ gobjdump -b binary -m armv4t --adjust-vma=0x00104000 --disassembler-options=force-thumb -D 3_01/spmtx.bin
 ```
 
+## Road to `boot0`
+
+In order to fully understand the custom file format, we need to understand how `boot0` works.
+Presumably (or hopefully), the pages on the flash storage containing `boot0` are locked in the sense of that the cannot be overwritten (that would be a good thing).
+Assuming that, it would be "safe" to temper with a `.sax` file and if something goes wrong, we could just fall back to the official firmware file and restore the firmware on the device.
+However, that's just a dangerous assumption: What if the pages of `boot0` aren't locked and thus we may end up bricking the device?
+
+Thus, I propose the following attack plan:
+* reverse the firmware, identify the part where it reads configurations from a SD-card.
+* find buffer overflow vuln.
+* exploit it, dump flash content to SD-card (assuming that those pages are readable in firmware mode).
+* have `boot0`.
+
+With that we can safely analyze `boot0` and decide if tempering with the `.sax` file is safe enough.
+
 ## Related Work
 
 * http://www.rc-cam.com/forum/index.php?/topic/2064-hacking-the-i2c-interface-of-spektrum-dx-and-ar/
@@ -29,3 +44,4 @@ $ gobjdump -b binary -m armv4t --adjust-vma=0x00104000 --disassembler-options=fo
 ## Videos
 
 * internals of DX8: https://www.youtube.com/watch?v=bWobptDQ3FU
+
