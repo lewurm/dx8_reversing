@@ -1,6 +1,10 @@
 SHELL := bash
 
-YOUR_ARM_LD := ~/work/monodroid.c9/monodroid/external/android-sdk-tool/android-ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-ld
+# define the path to your arm toolchain, android ndk works fine for me.
+YOUR_ARM_PREFIX ?= ~/work/monodroid.c9/monodroid/external/android-sdk-tool/android-ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-
+
+CC := $(YOUR_ARM_PREFIX)gcc
+LD := $(YOUR_ARM_PREFIX)ld
 
 .PRECIOUS: %.elf %.disasm %.s
 
@@ -10,10 +14,10 @@ all: 3_01/spmtx.disasm
 	gobjdump -b elf32-littlearm -m armv4t -D $< > $@
 
 %.elf: %.o
-	$(YOUR_ARM_LD) -o $@ $<
+	$(LD) -o $@ $<
 
 %.o: %.s
-	as --target=arm -mfloat-abi=soft -o $@ $<
+	$(CC) -mtune=arm7tdmi -c -o $@ $<
 
 %.s: %.sax
 	./sax2s.py $<
