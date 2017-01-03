@@ -6,7 +6,7 @@ with open(sys.argv[1], "r") as fd:
     data = fd.read()
 
 out_file = open(sys.argv[1].replace(".sax", ".s"), "wb")
-out_file.write(".text\n")
+out_file.write(".section __TEXT\n")
 
 # input is a string consisting of two chars, representing a byte in hex
 def out_byte(byte_string):
@@ -42,6 +42,7 @@ def out_chunk(addr, byte_string):
 
 
 data_length = len(data)
+first = True
 
 print "[++] input file %s is %d bytes long" % (sys.argv[1], data_length)
 
@@ -81,6 +82,10 @@ while i < data_length:
         addr = data[i:i+8]
         print "[++] writing 0x100 bytes at addr 0x%s " % addr
         out_file.write(".org 0x%s\n" % addr)
+        if first:
+            out_file.write(".globl _main\n")
+            out_file.write("_main:\n")
+            first = False
         payload_length += 0x100
         real_length = 0
         i += 8
