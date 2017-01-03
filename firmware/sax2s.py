@@ -5,13 +5,15 @@ import sys, struct
 with open(sys.argv[1], "r") as fd:
     data = fd.read()
 
-out_file = open(sys.argv[1].replace(".sax", ".bin"), "wb")
+out_file = open(sys.argv[1].replace(".sax", ".s"), "wb")
+out_file.write(".text\n")
 
 # input is a string consisting of two chars, representing a byte in hex
 def out_byte(byte_string):
     assert (len(byte_string) == 2)
     val = int(byte_string, 16)
-    out_file.write(struct.pack('1B', *[val]))
+    out_file.write(".byte 0x" + byte_string + "\n")
+    # out_file.write(struct.pack('1B', *[val]))
     return val
 
 def out_word(byte_string):
@@ -24,13 +26,14 @@ def out_word(byte_string):
 def out_chunk(addr, byte_string):
     # 0x100 bytes + 1 byte checksum -> 0x200 chars + 2 chars checksum
     assert (len(byte_string) <= 0x202)
-    plen = len(byte_string[:-2])
-    checksum = int(byte_string[-2:], 16)
+    plen = len(byte_string[2:])
+    checksum = int(byte_string[0:2], 16)
     i, j, val = 0, 0, 0
     val += int(addr[0:2], 16)
     val += int(addr[2:4], 16)
     val += int(addr[4:6], 16)
     val += int(addr[6:8], 16)
+    i += 2
     while i < plen:
         val = (val + out_word(byte_string[i:i+8])) % 0x100
         i += 8
@@ -77,6 +80,7 @@ while i < data_length:
         i += 2
         addr = data[i:i+8]
         print "[++] writing 0x100 bytes at addr 0x%s " % addr
+        out_file.write(".org 0x%s\n" % addr)
         payload_length += 0x100
         real_length = 0
         i += 8

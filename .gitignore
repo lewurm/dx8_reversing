@@ -1,1 +1,4 @@
 my_serial_number
+*.s
+*.elf
+*.disasm
