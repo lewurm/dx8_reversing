@@ -10,35 +10,15 @@ out_file = open(sys.argv[1].replace(".sax", ".s"), "wb")
 # input is a string consisting of two chars, representing a byte in hex
 def out_byte(byte_string):
     assert (len(byte_string) == 2)
-    val = int(byte_string, 16)
+    int(byte_string, 16)
     out_file.write(".byte 0x" + byte_string + "\n")
-    # out_file.write(struct.pack('1B', *[val]))
-    return val
 
 def out_word(byte_string):
     assert (len(byte_string) == 8)
-    val = out_byte(byte_string[0:2])
-    val = out_byte(byte_string[2:4])
-    val = out_byte(byte_string[4:6])
-    return (val + out_byte(byte_string[6:8])) % 0x100
-
-def out_chunk(addr, byte_string):
-    # 0x100 bytes + 1 byte checksum -> 0x200 chars + 2 chars checksum
-    assert (len(byte_string) <= 0x202)
-    plen = len(byte_string[2:])
-    checksum = int(byte_string[0:2], 16)
-    i, j, val = 0, 0, 0
-    val += int(addr[0:2], 16)
-    val += int(addr[2:4], 16)
-    val += int(addr[4:6], 16)
-    val += int(addr[6:8], 16)
-    i += 2
-    while i < plen:
-        val = (val + out_word(byte_string[i:i+8])) % 0x100
-        i += 8
-    print "[XXX] checksum 0x%02x (0x%02x) vs. 0x%02x (0x%02x)" % (val, ~val & 0xff, checksum, ~checksum & 0xff)
-    return val
-
+    out_byte(byte_string[0:2])
+    out_byte(byte_string[2:4])
+    out_byte(byte_string[4:6])
+    out_byte(byte_string[6:8])
 
 data_length = len(data)
 first = True
@@ -79,32 +59,27 @@ while i < data_length:
     elif data[i:i+2] == "SC":
         i += 2
         addr = data[i:i+8]
-        print "[++] writing 0x100 bytes at addr 0x%s " % addr
-        # out_file.write(".org 0x%s\n" % addr)
+        i += 8
+        chunk_length = int(data[i:i+2], 16) * 4
+        i += 2
+        assert chunk_length <= 0x100, "specified length 0x%x" % chunk_length
+
         if first:
             out_file.write(".section .start,\"ax\"\n")
             out_file.write("_main:\n")
             first = False
-        payload_length += 0x100
+
+        print "[++] writing 0x%x bytes at addr 0x%s " % (chunk_length, addr)
         real_length = 0
-        i += 8
-        # for j in [1,2,3,4]:
-        #     print "> 0x%s" % data[i:i+8]
-        #     i += 8 
-        #     real_length += 8
         chunk = ""
-        while real_length < (0x101 * 2) and ord(data[i]) != 0x1a:
-            chunk += data[i]
-            i += 1
-            real_length += 1
-        if real_length == 0x202:
-            out_chunk(addr, chunk)
-        else:
-            print "XXX TODO"
-        print "[++] got %d / 0x%x bytes of data after addr -> checksum 0x%s" % (real_length/2, real_length/2, data[i:i+2])
+        while real_length < (chunk_length * 2):
+            assert ord(data[i]) != 0x1a, "invalid encoding"
+            out_word(data[i:i+8])
+            i += 8
+            real_length += 8
+        print "[++] got %d / 0x%x bytes of data after addr (specified %d / 0x%x)" % (real_length/2, real_length/2, chunk_length, chunk_length)
+        payload_length += chunk_length
         i += 2
-        if real_length < 0x200:
-            print "[--] you should see this message only once"
         continue
     elif data[i] == "T" or data[i] == "#":
         is_comment = data[i] == "#"
