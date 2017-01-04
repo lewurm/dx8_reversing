@@ -6,7 +6,7 @@ YOUR_ARM_PREFIX ?= ~/work/monodroid.c9/monodroid/external/android-sdk-tool/andro
 CC := $(YOUR_ARM_PREFIX)gcc
 LD := $(YOUR_ARM_PREFIX)ld
 
-.PRECIOUS: %.elf %.disasm %.s
+.PRECIOUS: %.elf %.disasm %.s %.o
 
 all: 3_01/spmtx.disasm
 
@@ -14,7 +14,7 @@ all: 3_01/spmtx.disasm
 	gobjdump -b elf32-littlearm -m armv4t -D $< > $@
 
 %.elf: %.o
-	$(LD) -o $@ $<
+	$(LD) -T firmware.lds -o $@ $<
 
 %.o: %.s
 	$(CC) -mtune=arm7tdmi -c -o $@ $<
