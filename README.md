@@ -14,11 +14,17 @@ Commands are separated by `0x1a` and the known one are:
 
 The address range starts of one of the firmwares I'm looking at (3.01 for DX8), starts at `0x00104000` which is sound with the information from the `AT91SAM7S512` datasheet: The internal flash is mapped to `0x001000000--0x001fffff`.
 
-Executing `strings` on the resulting binary file: https://gist.github.com/lewurm/23bf50595c0274efebc07c3ed3d20e78
+## useful commands
 
 ```
-$ gobjdump -b binary -m armv4t --adjust-vma=0x00104000 --disassembler-options=force-thumb -D 3_01/spmtx.bin
+$ make
+$ # get a list of strings with correct offsets in ELF
+$ rabin2 -zz 3_01/spmtx.elf
 ```
+
+Output: https://gist.github.com/b52f0e3cf4c363f087d4f8ed34f04aed
+
+Interesting stuff starts at `0x00146748`.
 
 ## Road to `boot0`
 
