@@ -1,17 +1,18 @@
 SHELL := bash
 
-# define the path to your arm toolchain, android ndk works fine for me.
-YOUR_ARM_PREFIX ?= ~/work/monodroid.c9/monodroid/external/android-sdk-tool/android-ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-
+# define the path to your arm toolchain
+YOUR_ARM_PREFIX ?= /Applications/ArmGNUToolchain/13.3.rel1/arm-none-eabi/bin/arm-none-eabi-
 
 CC := $(YOUR_ARM_PREFIX)gcc
 LD := $(YOUR_ARM_PREFIX)ld
+OBJDUMP := $(YOUR_ARM_PREFIX)objdump
 
 .PRECIOUS: %.elf %.disasm %.s %.o
 
 all: 3_01/spmtx.disasm
 
 %.disasm: %.elf
-	gobjdump -b elf32-littlearm -m armv4t -D $< > $@
+	$(OBJDUMP) -b elf32-littlearm -m armv4t -D $< > $@
 
 %.elf: %.o
 	$(LD) -T firmware.lds -o $@ $<
@@ -20,7 +21,7 @@ all: 3_01/spmtx.disasm
 	$(CC) -mtune=arm7tdmi -c -o $@ $<
 
 %.s: %.sax
-	./sax2s.py $<
+	python3 ./sax2s.py $<
 
 .PHONY: clean
 clean:
