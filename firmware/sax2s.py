@@ -1,11 +1,9 @@
-#!/usr/local/bin/python2
-
 import sys, struct
 
 with open(sys.argv[1], "r") as fd:
     data = fd.read()
 
-out_file = open(sys.argv[1].replace(".sax", ".s"), "wb")
+out_file = open(sys.argv[1].replace(".sax", ".s"), "w")
 
 # input is a string consisting of two chars, representing a byte in hex
 def out_byte(byte_string):
@@ -23,7 +21,7 @@ def out_word(byte_string):
 data_length = len(data)
 first = True
 
-print "[++] input file %s is %d bytes long" % (sys.argv[1], data_length)
+print("[++] input file %s is %d bytes long" % (sys.argv[1], data_length))
 
 fake_newlines = 0
 i = 0
@@ -53,8 +51,8 @@ while i < data_length:
                 message += "0x%s " % data[i:i+4]
             i += 4
             count += 4
-        print message
-        print "[++] breaking ??? at index %d/%d" % (count,i)
+        print(message)
+        print("[++] breaking ??? at index %d/%d" % (count,i))
         continue
     elif data[i:i+2] == "SC":
         i += 2
@@ -69,7 +67,7 @@ while i < data_length:
             out_file.write("_main:\n")
             first = False
 
-        print "[++] writing 0x%x bytes at addr 0x%s " % (chunk_length, addr)
+        print("[++] writing 0x%x bytes at addr 0x%s " % (chunk_length, addr))
         real_length = 0
         chunk = ""
         while real_length < (chunk_length * 2):
@@ -77,7 +75,7 @@ while i < data_length:
             out_word(data[i:i+8])
             i += 8
             real_length += 8
-        print "[++] got %d / 0x%x bytes of data after addr (specified %d / 0x%x)" % (real_length/2, real_length/2, chunk_length, chunk_length)
+        print("[++] got %d / 0x%x bytes of data after addr (specified %d / 0x%x)" % (int(real_length/2), int(real_length/2), chunk_length, chunk_length))
         payload_length += chunk_length
         i += 2
         continue
@@ -89,19 +87,19 @@ while i < data_length:
             if ord(data[i]) > 0x00:
                 message += data[i]
             i += 1
-        print "[++] %s: %s" % ("Comment" if is_comment else "Text", message)
+        print("[++] %s: %s" % ("Comment" if is_comment else "Text", message))
         continue
     else:
-        print "[VV] misc %s/0x%x " % (data[i], ord(data[i]))
+        print("[VV] misc %s/0x%x " % (data[i], ord(data[i])))
         i += 1
 
     i += 1
 
 if reached_end:
-    print "[++] found %d fake newlines" % fake_newlines
-    print "[++] payload is %d bytes (%d kilo bytes)" % (payload_length, payload_length/1024)
+    print("[++] found %d fake newlines" % fake_newlines)
+    print("[++] payload is %d bytes (%d kilo bytes)" % (payload_length, payload_length/1024))
 else:
-    print "[--] something went wrong."
+    print("[--] something went wrong.")
 
 
 out_file.close ()
