@@ -7,12 +7,15 @@ CC := $(YOUR_ARM_PREFIX)gcc
 LD := $(YOUR_ARM_PREFIX)ld
 OBJDUMP := $(YOUR_ARM_PREFIX)objdump
 
-.PRECIOUS: %.elf %.disasm %.s %.o
+.PRECIOUS: %.elf %.disasm %.disasm_thumb %.s %.o
 
-all: 3_01/spmtx.disasm
+all: 3_01/spmtx.disasm 3_01/spmtx.disasm_thumb
 
 %.disasm: %.elf
 	$(OBJDUMP) -b elf32-littlearm -m armv4t -D $< > $@
+
+%.disasm_thumb: %.elf
+	$(OBJDUMP) -b elf32-littlearm -m armv4t -Mforce-thumb -D $< > $@
 
 %.elf: %.o
 	$(LD) -T firmware.lds -o $@ $<
@@ -25,4 +28,4 @@ all: 3_01/spmtx.disasm
 
 .PHONY: clean
 clean:
-	rm -rf 3_01/spmtx.{s,o,elf,disasm}
+	rm -rf 3_01/spmtx.{s,o,elf,disasm,disasm_thumb}

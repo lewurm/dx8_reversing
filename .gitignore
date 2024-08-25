@@ -3,3 +3,4 @@ my_serial_number
 *.o
 *.elf
 *.disasm
+*.disasm_thumb
